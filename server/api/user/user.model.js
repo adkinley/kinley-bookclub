@@ -5,6 +5,7 @@ var Schema = mongoose.Schema;
 var crypto = require('crypto');
 var authTypes = ['github', 'twitter', 'facebook', 'google'];
 
+
 var UserSchema = new Schema({
   name: String,
   email: { type: String, lowercase: true },
@@ -17,16 +18,16 @@ var UserSchema = new Schema({
   salt: String,
   twitter: {},
   github: {},
- myrequests: [RequestSchema],
-  requests: [RequestSchema],
-  mybooks:[String]
+  myrequests: [{bookID:String, owner:String}],
+  requests: [{bookID:String, owner:String}],
+  mybooks:[String],
+  fullName:String,
+  city:String,
+  state:String
 });
 
 
-var RequestSchema = new Schema( {
-  bookID:String,
-  owner:String
-});
+
 /**
  * Virtuals
  */

@@ -4,7 +4,7 @@ var User = require('./user.model');
 var passport = require('passport');
 var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
-
+var _ = require('lodash');
 var validationError = function(res, err) {
   return res.status(422).json(err);
 };
@@ -47,6 +47,106 @@ exports.show = function (req, res, next) {
     res.json(user.profile);
   });
 };
+
+
+// Updates an existing book in the DB.
+//router.put('/request/:requester/:owner/:bookid',auth.isAuthenticated(),controller.addRequestToUser); // requester stores request
+exports.addRequestToUser = function(req, res) {
+  var requester = req.params.requester;
+  var bookid = req.params.bookid;
+  var owner = req.params.owner;
+  var request = {bookID:bookid, owner:owner};
+
+  if(req.body._id) { delete req.body._id; }
+  User.findOne({name:requester}, function (err, user) {
+    if (err) { return handleError(res, err); }
+    if(!user) { return res.status(404).send('Not Found'); }
+    user.myrequests.push(request);
+  user.save(function (err) {
+      if (err) { return handleError(res, err); }
+      return res.status(200).json(user);
+    });
+  });
+};
+
+
+//router.put('/ask/:owner/:requester/:bookid',auth.isAuthenticated(), contoller.madeRequest); 
+// requester asks owner for book
+// Should update the list of pending requests in owner
+exports.madeRequest = function(req, res) {
+  var requester = req.params.requester;
+  var bookid = req.params.bookid;
+  var owner = req.params.owner;
+  var request = {bookID:bookid, owner:requester};
+
+  if(req.body._id) { delete req.body._id; }
+  User.findOne({name:owner}, function (err, user) {
+    if (err) { return handleError(res, err); }
+    if(!user) { return res.status(404).send('Not Found'); }
+    user.requests.push(request);
+
+    user.save(function (err) {
+      if (err) { return handleError(res, err); }
+      return res.status(200).json(user);
+    });
+  });
+};
+
+exports.removeRequest = function(req, res) {
+  var requester = req.params.requester;
+  var bookid = req.params.bookid;
+  var owner = req.params.owner;
+
+
+  if(req.body._id) { delete req.body._id; }
+  User.findOne({name:owner}, function (err, user) {
+    if (err) { return handleError(res, err); }
+    if(!user) { return res.status(404).send('Not Found'); }
+    user.myrequests = _.remove(user.myrequests, function(elt) {
+      return (elt.owner == requester && elt.bookid == bookid);
+    });
+
+    if (user.myrequests==undefined) {
+      console.log("Couldn't find request for " + requester + " " + bookid);
+      return res.status(404).send('Not Found');
+    }
+    user.save(function (err) {
+      if (err) { return handleError(res, err); }
+      return res.status(200).json(user);
+    });
+  });
+};
+
+
+exports.removeAsk = function(req, res) {
+  console.log("Do I get here");
+  var requester = req.params.requester;
+  var bookid = req.params.bookid;
+  var owner = req.params.owner;
+
+  console.log("Remove Ask " + requester + " " + owner);
+  if(req.body._id) { delete req.body._id; }
+  User.findOne({name:owner}, function (err, user) {
+    if (err) { return handleError(res, err); }
+    if(!user) { return res.status(404).send('Not Found'); }
+    user.requests = _.remove(user.requests, function(elt) {
+      return (elt.owner == requester && elt.bookid == bookid);
+    });
+    if (user.requests==undefined) {
+      console.log("Couldn't find request for " + requester + " " + bookid);
+      return res.status(404).send('Not Found');
+    }
+
+    user.save(function (err) {
+      if (err) { 
+        console.log("Err is " + err);
+        return handleError(res, err); }
+      return res.status(200).json(user);
+    });
+  });
+
+};
+
 
 /**
  * Deletes a user
@@ -98,6 +198,75 @@ exports.addBook = function(req, res, next) {
     user.save(function (err) {
       if (err) 
         res.status(405).send("Failed to add book");
+      else
+        res.status(200).send('OK');
+      });
+  });
+}
+/*
+exports.removeRequest = function(req,res,next) {
+  var userId = req.params.user;
+  var bookId = req.params.bookid;
+  console.log("Book Id iS " +  req.params.bookid);
+  console.log("Attempting to remove book userId = " +userId);
+
+  User.findOne({name: userId}, function (err, user) {
+    if (err)
+      res.status(401).send("User not found");
+    console.log("User name is " + user.name);
+    console.log("User books are " + user.mybooks);
+    user.requests = _.remove(user.myrequests, function(elt) {elt.bookid == bookId;});
+    console.log("book is "+bookId);
+    console.log("Saved books are " + user.mybooks);
+    user.save(function (err) {
+      if (err) 
+        res.status(405).send("Failed to remove book");
+      else
+        res.status(200).send('OK');
+      });
+  });
+}
+
+exports.removeAsk = function(req, res, next) {
+  var userId = req.params.owner;
+  var bookId = req.params.bookid;
+  console.log("Book Id iS " +  req.params.bookid);
+  console.log("Attempting to remove book userId = " +userId);
+
+  User.findOne({name: userId}, function (err, user) {
+    if (err)
+      res.status(401).send("User not found");
+    console.log("User name is " + user.name);
+    console.log("User books are " + user.mybooks);
+    user.requests = _.remove(user.requests, function(elt) {elt.bookid == bookId;});
+    console.log("book is "+bookId);
+    console.log("Saved books are " + user.mybooks);
+    user.save(function (err) {
+      if (err) 
+        res.status(405).send("Failed to remove book");
+      else
+        res.status(200).send('OK');
+      });
+  });
+}
+*/
+exports.removeBook = function(req, res, next) {
+  var userId = req.params.user;
+  var bookId = req.params.bookid;
+  console.log("Book Id iS " +  req.params.bookid);
+  console.log("Attempting to remove book userId = " +userId);
+
+  User.findOne({name: userId}, function (err, user) {
+    if (err)
+      res.status(401).send("User not found");
+    console.log("User name is " + user.name);
+    console.log("User books are " + user.mybooks);
+    user.mybooks = _.remove(user.mybooks, function(elt) {elt._id == bookId;});
+    console.log("book is "+bookId);
+    console.log("Saved books are " + user.mybooks);
+    user.save(function (err) {
+      if (err) 
+        res.status(405).send("Failed to remove book");
       else
         res.status(200).send('OK');
       });

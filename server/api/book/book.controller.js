@@ -35,13 +35,16 @@ exports.update = function(req, res) {
   Book.findById(req.params.id, function (err, book) {
     if (err) { return handleError(res, err); }
     if(!book) { return res.status(404).send('Not Found'); }
+    console.log("Current owner = " + book.owner);
     var updated = _.merge(book, req.body);
+    console.log("New owner = " +book.owner);
     updated.save(function (err) {
       if (err) { return handleError(res, err); }
       return res.status(200).json(book);
     });
   });
 };
+
 
 // Deletes a book from the DB.
 exports.destroy = function(req, res) {

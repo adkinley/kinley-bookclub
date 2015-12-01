@@ -10,6 +10,7 @@ var BookSchema = new Schema({
   bookID: String,
   owner: String,
   location: String,
+  available: Boolean,
   active: Boolean
 });
 

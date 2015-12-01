@@ -6,5 +6,14 @@ angular.module('kinleyBookclubApp')
       .when('/', {
         templateUrl: 'app/main/main.html',
         controller: 'MainCtrl'
+      })
+      .when('/allbooks',{
+        templateUrl: 'app/main/main.html',
+        controller: 'MainCtrl'
+      })
+      .when('/mybooks',{
+        templateUrl: 'app/main/main.html',
+        controller: 'MainCtrl'
       });
+      	
   });
