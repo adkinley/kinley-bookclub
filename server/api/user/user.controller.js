@@ -102,9 +102,13 @@ exports.removeRequest = function(req, res) {
   User.findOne({name:owner}, function (err, user) {
     if (err) { return handleError(res, err); }
     if(!user) { return res.status(404).send('Not Found'); }
-    user.myrequests = _.remove(user.myrequests, function(elt) {
-      return (elt.owner == requester && elt.bookid == bookid);
+    console.log(requester);
+    console.log(bookid);
+    console.log(user.myrequests);
+     user.myrequests = _.remove(user.myrequests, function(elt) {
+      return (elt.owner != requester || elt.bookID != bookid);
     });
+     console.log(user.myrequests);
 
     if (user.myrequests==undefined) {
       console.log("Couldn't find request for " + requester + " " + bookid);
@@ -130,7 +134,7 @@ exports.removeAsk = function(req, res) {
     if (err) { return handleError(res, err); }
     if(!user) { return res.status(404).send('Not Found'); }
     user.requests = _.remove(user.requests, function(elt) {
-      return (elt.owner == requester && elt.bookid == bookid);
+      return (elt.owner != requester || elt.bookID != bookid);
     });
     if (user.requests==undefined) {
       console.log("Couldn't find request for " + requester + " " + bookid);

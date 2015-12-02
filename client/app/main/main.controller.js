@@ -10,7 +10,7 @@ angular.module('kinleyBookclubApp')
     $scope.user = undefined;
 
     $scope.showMyBooks = false;
-    $scope.showLibrary = false;
+    $scope.showLibrary = true;
     $scope.showRequests = true;
     $scope.searchBar = false;
     $scope.showRequests = true;
@@ -21,10 +21,14 @@ angular.module('kinleyBookclubApp')
     if ($location.path()==='/mybooks') {
       $scope.showMyBooks = true;
       $scope.searchBar = true;
+      $scope.showLibrary = false;
     }
 
-    if ($location.path()==='/allbooks')
+    if ($location.path()==='/allbooks') {
       $scope.showLibrary = true;
+      $scope.searchBar = false;
+      $scope.showMyBooks = false;
+    }
 
     loadLibrary();
     
@@ -55,6 +59,7 @@ angular.module('kinleyBookclubApp')
     }
   }
 
+
 /*  $http.get('https://www.googleapis.com/books/v1/volumes?q=flowers+for+algernon&printType=books&maxResults=10&key=AIzaSyCE85DXHNPzH7JtJoP6wPUh9W_XYPstnPw')
   .success(function(result) {
     console.log("Result:");
@@ -65,11 +70,14 @@ angular.module('kinleyBookclubApp')
 function loadLibrary() {
    $http.get('/api/books').success(function(awesomeThings) {
       $scope.awesomeThings = awesomeThings;
-      socket.syncUpdates('book', $scope.awesomeThings);
       loadCurrentUser();
+      socket.syncUpdates('book', $scope.awesomeThings, function() {loadCurrentUser();});
     });
  }
 
+$scope.clearSearchResults = function() {
+  $scope.books = [];
+}
 $scope.remove = function(bookId) {
   console.log("Called remove "+bookId);
   _.remove($scope.books, function (elt) { return elt.id == bookId;})
@@ -93,14 +101,19 @@ function createEntry(book) {
 function removeRequest(bookid, requester, owner) {
   // remove bookid from requester myrequests list
   // remove bookid from owner requests list
-  
+console.log("Current User is " + Auth.getCurrentUser().name + " Requester is " + requester + " Owner is " + owner);  
   $http.put('/api/users/remove/ask/'+owner+'/'+requester+'/'+bookid).success(function(data) {
-    if (data.name == Auth.getCurrentUser().name)
+    /*if (data.name == Auth.getCurrentUser().name) {
+      console.log("Doing the owner update");
       $scope.user = data;
-
-    $http.put('/api/users/remove/request/'+requester+'/'+owner+'/'+bookid).success(function(data) {
-      if (data.name == Auth.getCurrentUser().name)
-        $scope.user = data;
+    }*/
+    $http.put('/api/users/remove/request/'+requester+'/'+owner+'/'+bookid).success(function(data2) {
+      console.log("USER: " +JSON.stringify(data2));
+      loadCurrentUser();
+/*      if (data2.name == Auth.getCurrentUser().name) {
+        console.log("Doing the requester update");
+        $scope.user = data2;
+      }*/
     });
   });
 
@@ -174,18 +187,9 @@ $scope.getTitle = function(bookid, owner) {
 
     return book.name;
 }
-$scope.addFromLibrary = function(bookId) {
-  //console.log("In add with " + bookId + " auth = " + Auth.isLoggedIn());
- /*if (!Auth.isLoggedIn()) {
-      $cookies.addBook =true;
-      $cookies.bookId = bookId;
-      console.log("THis is where we should authenticate");;
-      */
-//      $window.location.href = '/login';
-      // should add cookies to redo search and complete this if successful authenticating
 
-//       }
-  //else if (Auth.isLoggedIn()) {
+$scope.addFromLibrary = function(bookId) {
+  
    var book =  _.find($scope.awesomeThings , function (book) { return book.id== bookId;} );
 
    // console.log("Book: " + JSON.stringify(data));
@@ -207,30 +211,18 @@ $scope.addFromLibrary = function(bookId) {
 /** Given the id of a book (from the results of a search) 
   Add the book to the database of books and to the authenticated users library **/
 $scope.addFromSearch = function(bookId) {
-  //console.log("In add with " + bookId + " auth = " + Auth.isLoggedIn());
- /*if (!Auth.isLoggedIn()) {
-      $cookies.addBook =true;
-      $cookies.bookId = bookId;
-      console.log("THis is where we should authenticate");;
-      */
-//      $window.location.href = '/login';
-      // should add cookies to redo search and complete this if successful authenticating
-
-//       }
-  //else if (Auth.isLoggedIn()) {
    var book =  _.find($scope.books , function (book) { return book.id== bookId;} );
-
    var entry = createEntry(book);
+
    if (Auth.isLoggedIn()) {
     $scope.userBooks.push(entry);
   }
-    // console.log("Book is " + JSON.stringify(entry));
+
     $http.post('/api/books', entry).success(function (data) {
-   // console.log("Book: " + JSON.stringify(data));
-   $http.put('/api/users/add/'+Auth.getCurrentUser().name+'/'+data._id).success(function (data) {
-     //     console.log("User: " + JSON.stringify(data));
-   });
- })
+     $http.put('/api/users/add/'+Auth.getCurrentUser().name+'/'+data._id).success(function (data) {
+      _.remove($scope.books , function (book) { return book.id== bookId;} );
+     });
+   })
   .error(function(err) {
     console.log("Error trying to /api/books probably auth failure "+ err);
   });
@@ -265,7 +257,7 @@ $scope.search =  function() {
     };
 
     $scope.$on('$destroy', function () {
-      socket.unsyncUpdates('thing');
+     
       socket.unsyncUpdates('book');
     });
   });
