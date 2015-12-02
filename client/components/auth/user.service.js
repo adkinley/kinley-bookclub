@@ -12,6 +12,12 @@ angular.module('kinleyBookclubApp')
           controller:'password'
         }
       },
+      updateAddress: {
+        method: 'PUT',
+        params: {
+          controller:'address'
+        }
+      },
       get: {
         method: 'GET',
         params: {

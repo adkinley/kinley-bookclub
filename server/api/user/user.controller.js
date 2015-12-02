@@ -183,6 +183,25 @@ exports.changePassword = function(req, res, next) {
     }
   });
 };
+
+/**
+ * Change a users password
+ */
+exports.updateAddress = function(req, res, next) {
+  var userId = req.user._id;
+  var city = String(req.body.city);
+  var state = String(req.body.state);
+
+  User.findById(userId, function (err, user) {
+    user.city = city;
+    user.state = state;
+      user.save(function(err) {
+        if (err) return validationError(res, err);
+        res.status(200).send('OK');
+      });
+
+  });
+};
  
 
 exports.addBook = function(req, res, next) {
