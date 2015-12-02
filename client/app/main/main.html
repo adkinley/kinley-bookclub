@@ -2,50 +2,69 @@
 
 <header class="hero-unit" id="banner">
   <div class="container">
-    <h1>'Allo, 'Allo!</h1>
-    <p class="lead">Kick-start your next web app with Angular Fullstack</p>
-    <img src="assets/images/yeoman.png" alt="I'm Yeoman">
+    <h1>Book Chimp!</h1>
+    <p class="lead">Find the pefect match for you books!</p>
+    <i class="fa fa-book" style="font-size:20pt"></i>
   </div>
 </header>
 
 <div class="container" ng-show="showRequests" style="margin-top:25px">
-<button class="btn btn-info">Your trade requests ({{}} Outstanding)</button>
-<button class="btn btn-primary">Trade requests for you ({{}} Unapproved)</button>
+<button class="btn btn-info" ng-click="toggleMyRequests()">Your trade requests ({{user.myrequests.length || 0}} Outstanding)</button>
+<button class="btn btn-primary" ng-click="toggleRequests()">Trade requests for you ({{user.requests.length || 0}} Unapproved)</button>
 
-<ul>
-  <li>List of requests</li>
-</ul>
+
+<div class="container" ng-show="showPendingRequest && user.requests.length!=0">
+  <h3>Pending Requests for User</h3>
+  <ul ng-repeat="request in user.requests">
+    <li> {{getTitle(request.bookID, currentUser)}} from {{request.owner}}
+      <span class="glyphicon glyphicon-ok" data-toggle="tootip" title="Accept" ng-click="acceptRequest(request.bookID, request.owner)"></span>
+      <span class="glyphicon glyphicon-remove" data-toggle="tootip" title="Remove" ng-click="rejectRequest(request.bookID, request.owner)"></span>
+    </li>
+    </ul>
+</div>
+
+<div class="container" ng-show="showMyRequests&&user.myrequests.length!=0">
+  <h3>Requests of User</h3>
+    <ul ng-repeat="request in user.myrequests">
+    <li> {{getTitle(request.bookID, request.owner)}} for {{request.owner}}
+      <span class="glyphicon glyphicon-remove" data-toggle="tootip" title="Delete Request" ng-click="deleteRequest(request.bookID, request.owner)"></span>
+    </li>
+    </ul>
+</div>
+
+
 </div>
 
 <div class="container" ng-show="showLibrary">
   <h3 >Library</h3>
-<div class="row" ng-repeat="thing in awesomeThings" ng-if="$index % 4 === 0">
+<div class="row" ng-repeat="thing in awesomeThings" ng-if="$index % 4 === 0" style="padding-bottom:25px">
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index < awesomeThings.length">
            <div class="wrapper"> <img ng-src="{{awesomeThings[$index].thumbnailURL}}" width="50%" />
-                    <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(book.id)"></span>
-        <span ng-show="awesomeThings[$index].available" class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index]._id)"></span></div>
+
+        <span ng-show="awesomeThings[$index].available&&awesomeThings[$index].owner!=currentUser" class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index]._id)"></span></div>
         </div>
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index + 1 < awesomeThings.length">
           <div class="wrapper">          <img ng-src="{{awesomeThings[$index + 1].thumbnailURL}}" width="50%" />
-                    <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(awesomeThings[$index])"></span>
-        <span ng-show="awesomeThings[$index+1].available"  class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index+1]._id)"></span></div>
+
+        <span ng-show="awesomeThings[$index+1].available&&awesomeThings[$index+1].owner!=currentUser"  class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index+1]._id)"></span></div>
         </div>
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index + 2 < awesomeThings.length">
           <div class="wrapper">              <img ng-src="{{awesomeThings[$index + 2].thumbnailURL}}" width="50%" />
-                    <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(book.id)"></span>
-        <span ng-show="awesomeThings[$index+2].available" class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index+2]._id)"></span></div>
+
+        <span ng-show="awesomeThings[$index+2].available&&awesomeThings[$index+2].owner!=currentUser" class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index+2]._id)"></span></div>
         </div>
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index + 3 < awesomeThings.length">
           <div class="wrapper">              <img ng-src="{{awesomeThings[$index + 3].thumbnailURL}}" width="50%" />
-                    <span   class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(book.id)"></span>
-        <span ng-show="awesomeThings[$index+3].available" class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index+3]._id)"></span></div>
+
+        <span ng-show="awesomeThings[$index+3].available&&awesomeThings[$index+3].owner!=currentUser" class="glyphicon glyphicon-retweet upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="request(awesomeThings[$index+3]._id)"></span></div>
         </div>
     </div>
 </div>
 
 
 
-<div class="container">
+<div class="container" ng-show="searchBar">
+  <div>
   <form class="thing-form">
     <label>Search for a book title</label>
     <p class="input-group">
@@ -56,8 +75,8 @@
     </p>
   </form>
 </div>
-
-<div class="container">
+</div>
+<div>
   <h3 ng-show="books.length!=0">Search Results</h3>
 <div class="row" ng-repeat="book in books" ng-if="$index % 4 === 0" style="margin-bottom:10px">
     <div class="col-lg-3 col-md-3 col-sm-3"  ng-if="$index <books.length">
@@ -65,7 +84,7 @@
         <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(books[$index].id)"></span>
         <span class="glyphicon glyphicon-plus upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="addFromSearch(books[$index].id)"></span></div>
 </div>
-
+</div>
     <div class="col-lg-3 col-md-3 col-sm-3"  ng-if="$index+1 <books.length">
       <div class="wrapper"><img class="img" ng-src="{{books[$index+1].volumeInfo.imageLinks.thumbnail}}"></img>
         <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(books[$index+1].id)"></span>
@@ -83,51 +102,33 @@
 </div>
 
 </div>
-
-<div class="container" ng-show="user.requests.length!=0">
-  <h3>Pending Requests for User</h3>
-  <ul ng-repeat="request in user.requests">
-    <li> {{getTitle(request.bookID, currentUser)}} from {{request.owner}}
-      <span class="glyphicon glyphicon-ok" data-toggle="tootip" title="Accept" ng-click="acceptRequest(request.bookID, request.owner)"></span>
-      <span class="glyphicon glyphicon-remove" data-toggle="tootip" title="Remove" ng-click="rejectRequest(request.bookID, request.owner)"></span>
-    </li>
-    </ul>
-</div>
-
-<div class="container" ng-show="user.myrequests.length!=0">
-  <h3>Requests of User</h3>
-    <ul ng-repeat="request in user.myrequests">
-    <li> {{getTitle(request.bookID, request.owner)}} for {{request.owner}}
-      <span class="glyphicon glyphicon-remove" data-toggle="tootip" title="Delete Request" ng-click="deleteRequest(request.bookID, request.owner)"></span>
-    </li>
-    </ul>
 </div>
 
 
-<div class="container" ng-show="userBooks.length!=0">
-
-  <h3>{{currentUser}}'s' Library</h3>
+<div class="container" ng-show="showMyBooks">
+<h3>{{currentUser}}'s' Library</h3>
+<div ng-show="userBooks.length!=0">
 <div class="row" ng-repeat="book in userBooks" ng-if="$index % 4 === 0">
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index < userBooks.length">
            <div class="wrapper"> <img ng-src="{{userBooks[$index].thumbnailURL}}" width="50%" />
-                    <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(book.id)"></span>
-        <span class="glyphicon glyphicon-plus upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="add(book.id)"></span></div>
-        </div>
+                    <span class="glyphicon glyphicon-remove upperright" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(userBooks[$index].id)"></span>
+
+        </div></div>
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index + 1 < userBooks.length">
           <div class="wrapper">          <img ng-src="{{userBooks[$index + 1].thumbnailURL}}" width="50%" />
-                    <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(book.id)"></span>
-        <span class="glyphicon glyphicon-plus upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="add(book.id)"></span></div>
-        </div>
+                    <span class="glyphicon glyphicon-remove upperright" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(userBooks[$index+1].id)"></span>
+
+        </div></div>
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index + 2 < userBooks.length">
           <div class="wrapper">              <img ng-src="{{userBooks[$index + 2].thumbnailURL}}" width="50%" />
-                    <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(book.id)"></span>
-        <span class="glyphicon glyphicon-plus upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="add(book.id)"></span></div>
-        </div>
+                    <span class="glyphicon glyphicon-remove upperright" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(userBooks[$index+2]._id)"></span>
+
+        </div></div>
         <div class="col-md-3 col-lg-3 col-sm-3 col-xs-3" ng-if="$index + 3 < userBooks.length">
           <div class="wrapper">              <img ng-src="{{userBooks[$index + 3].thumbnailURL}}" width="50%" />
-                    <span class="glyphicon glyphicon-remove upperleft" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(book.id)"></span>
-        <span class="glyphicon glyphicon-plus upperright" style="color:red" data-toggle="tooltip" title="Add to my books" ng-click="add(book.id)"></span></div>
-        </div>
+                    <span class="glyphicon glyphicon-remove upperright" style="color:red" data-toggle="tooltip" title="Remove" ng-click="remove(userBooks[$index+3]._id)"></span>
+
+        </div></div>
     </div>
 
 </div>

@@ -12,17 +12,32 @@ angular.module('kinleyBookclubApp')
     $scope.showMyBooks = false;
     $scope.showLibrary = false;
     $scope.showRequests = true;
+    $scope.searchBar = false;
+    $scope.showRequests = true;
+    $scope.showMyRequests = false;
+    $scope.showPendingRequests = false;
+    console.log("In Main Controller "); 
 
-console.log("In Main Controller "); 
-  console.log("Route Params " +$location.path());
-if ($location.path()==='/mybooks')
-  $scope.showMyBooks = true;
+    if ($location.path()==='/mybooks') {
+      $scope.showMyBooks = true;
+      $scope.searchBar = true;
+    }
 
-if ($location.path()==='/allbooks')
-  $scope.showLibrary = true;
+    if ($location.path()==='/allbooks')
+      $scope.showLibrary = true;
 
-  loadLibrary();
+    loadLibrary();
     
+    $scope.toggleMyRequests = function() {
+      $scope.showPendingRequests = false;
+      $scope.showMyRequests = true;
+    }
+
+    $scope.toggleRequests = function() {
+      $scope.showPendingRequests = true;
+      $scope.showMyRequests = false;
+    }
+
     function loadCurrentUser() {
       if (Auth.isLoggedIn()) {
         $scope.currentUser = Auth.getCurrentUser().name;
