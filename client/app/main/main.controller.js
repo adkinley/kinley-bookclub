@@ -16,8 +16,9 @@ angular.module('kinleyBookclubApp')
     $scope.showRequests = true;
     $scope.showMyRequests = false;
     $scope.showPendingRequests = false;
-    console.log("In Main Controller "); 
 
+    // could have done this way better, but ngRoute allows this so it will 
+    // stay this way but i could have angular-fullstack:route newroute on this
     if ($location.path()==='/mybooks') {
       $scope.showMyBooks = true;
       $scope.searchBar = true;
@@ -29,9 +30,12 @@ angular.module('kinleyBookclubApp')
       $scope.searchBar = false;
       $scope.showMyBooks = false;
     }
-
+    // Always load up the current library -- I have some issues of scale on this. I would not want to load and 
+    // store 10000 books if the library contained that many. Perhaps there is another way....
     loadLibrary();
     
+    // These two methods are obviously poorly named but are meant to allows up to focus on either
+    // The requests made to us or the requests we have made
     $scope.toggleMyRequests = function() {
       $scope.showPendingRequests = false;
       $scope.showMyRequests = true;
@@ -46,7 +50,7 @@ angular.module('kinleyBookclubApp')
       if (Auth.isLoggedIn()) {
         $scope.currentUser = Auth.getCurrentUser().name;
         $http.get('/api/users/me').success(function (data) {
-          console.log("User info is " + JSON.stringify(data));
+
           $scope.user = data;
           var books  = $scope.awesomeThings;
           $scope.userBooks = [];
@@ -60,13 +64,6 @@ angular.module('kinleyBookclubApp')
   }
 
 
-/*  $http.get('https://www.googleapis.com/books/v1/volumes?q=flowers+for+algernon&printType=books&maxResults=10&key=AIzaSyCE85DXHNPzH7JtJoP6wPUh9W_XYPstnPw')
-  .success(function(result) {
-    console.log("Result:");
-    console.log(JSON.stringify(result.items));
-    $scope.books = result.items;
-  });
-*/
 function loadLibrary() {
    $http.get('/api/books').success(function(awesomeThings) {
       $scope.awesomeThings = awesomeThings;
@@ -79,7 +76,6 @@ $scope.clearSearchResults = function() {
   $scope.books = [];
 }
 $scope.remove = function(bookId) {
-  console.log("Called remove "+bookId);
   _.remove($scope.books, function (elt) { return elt.id == bookId;})
 } ;
 
@@ -89,7 +85,7 @@ function createEntry(book) {
   author: book.volumeInfo.authors[0],
   thumbnailURL: book.volumeInfo.imageLinks.thumbnail,
   bookID: book.id,
-  owner: Auth.getCurrentUser().name || 'adkinley',
+  owner: Auth.getCurrentUser().nameXS,
   available: true,
   location: "",
   active: true};
@@ -101,27 +97,17 @@ function createEntry(book) {
 function removeRequest(bookid, requester, owner) {
   // remove bookid from requester myrequests list
   // remove bookid from owner requests list
-console.log("Current User is " + Auth.getCurrentUser().name + " Requester is " + requester + " Owner is " + owner);  
+
   $http.put('/api/users/remove/ask/'+owner+'/'+requester+'/'+bookid).success(function(data) {
-    /*if (data.name == Auth.getCurrentUser().name) {
-      console.log("Doing the owner update");
-      $scope.user = data;
-    }*/
     $http.put('/api/users/remove/request/'+requester+'/'+owner+'/'+bookid).success(function(data2) {
-      console.log("USER: " +JSON.stringify(data2));
       loadCurrentUser();
-/*      if (data2.name == Auth.getCurrentUser().name) {
-        console.log("Doing the requester update");
-        $scope.user = data2;
-      }*/
     });
   });
 
-    console.log("General remove request method");
+
 }
 
 function makeAvailable(bookid) {
-  console.log("Make book available");
      var book =  _.find($scope.awesomeThings , function (book) { return book._id== bookid;} );
    book.available = true;
    $http.put('/api/books/'+book._id, book); // make book unavailable
@@ -132,19 +118,18 @@ $scope.rejectRequest = function(bookid, requester) {
   // book should be made available again
   removeRequest(bookid, requester, Auth.getCurrentUser().name);
   makeAvailable(bookid);
-  console.log("Reject request");
+
 }
 $scope.acceptRequest = function(bookid, requester) {
-  console.log("Accept request");
+
   // remove request from requester and owner
   removeRequest(bookid, requester, Auth.getCurrentUser().name);
   makeAvailable(bookid);
   var book =  _.find($scope.awesomeThings , function (book) { return book._id== bookid;} );
-  console.log("Changing owner from : "+book.owner + " to " + requester); 
+
   // also have to change ownership in booklist of each person, this is more problematic
   book.owner = requester;
    $http.put('/api/books/'+book._id, book).success(function (data) {
-    console.log("Successfully changed ownership of book");
    }); // make book unavailable  var book = 
 
   // remove book from owner library and add to requester library, this is just changing owner of book
@@ -155,21 +140,20 @@ $scope.deleteRequest = function(bookid, owner) {
     removeRequest(bookid, Auth.getCurrentUser().name, owner);
     makeAvailable(bookid);
   // book should be made available again
-  console.log("Delete request");
+
 }
 
 
 
 $scope.request = function(bookId) {
-  console.log("Making request");
+
    var book =  _.find($scope.awesomeThings , function (book) { return book._id== bookId;} );
    book.available = false;
+   
    $http.put('/api/books/'+book._id, book).success(function (data) { // make book unavailable
-    console.log("Book request success");
    $http.put('/api/users/ask/' + book.owner +'/'+ Auth.getCurrentUser().name +'/'+book._id).success(function (data2) {
    $http.put('/api/users/request/' + Auth.getCurrentUser().name + '/' +book.owner+'/'+book._id).success(function (data3){
-    $scope.user = data3;
-    console.log("After request " + JSON.stringify(data3));
+     $scope.user = data3;
    }); // mark that I have a current ask
 
     // add the request to the current User and the owner of the book
@@ -179,7 +163,6 @@ $scope.request = function(bookId) {
 }
 
 $scope.getTitle = function(bookid, owner) {
-  
     var  book = _.find($scope.awesomeThings, function(elt) { 
       return (elt._id == bookid && elt.owner==owner);});
     if (book == undefined) 
@@ -191,10 +174,8 @@ $scope.getTitle = function(bookid, owner) {
 $scope.addFromLibrary = function(bookId) {
   
    var book =  _.find($scope.awesomeThings , function (book) { return book.id== bookId;} );
-
-   // console.log("Book: " + JSON.stringify(data));
    $http.put('/api/users/add/'+Auth.getCurrentUser().name+'/'+book._id).success(function (data) {
-     //     console.log("User: " + JSON.stringify(data));
+
     });
 
    if (Auth.isLoggedIn()) {
@@ -203,11 +184,6 @@ $scope.addFromLibrary = function(bookId) {
  //}
 }
 
-/*if ($cookies.addBook!=undefined && $cookies.addBook) {
-  $scope.add($cooki<es.bookId);
-  $cookies.addBook = false;
-  $cookies.bookid ='';
-}*/
 /** Given the id of a book (from the results of a search) 
   Add the book to the database of books and to the authenticated users library **/
 $scope.addFromSearch = function(bookId) {
@@ -224,7 +200,7 @@ $scope.addFromSearch = function(bookId) {
      });
    })
   .error(function(err) {
-    console.log("Error trying to /api/books probably auth failure "+ err);
+
   });
 
 
@@ -232,17 +208,16 @@ $scope.addFromSearch = function(bookId) {
 }
 
 $scope.search =  function() {
-  console.log("Book title is " + $scope.bookTitle)
+
   var searchAPI = 'https://www.googleapis.com/books/v1/volumes?q='+$scope.bookTitle+'&printType=books&maxResults=10&callback=JSON_CALLBACK';
   //key=AIzaSyCE85DXHNPzH7JtJoP6wPUh9W_XYPstnPw';
   $scope.bookTitle = '';
   $http.jsonp(searchAPI)
   .success(function(result) {
-    //console.log("Result:");
-    //console.log(JSON.stringify(result));
+
     $scope.books = result.items;
   });
-  console.log("Search function complete");
+
 }
     $scope.addThing = function() {
       if($scope.newThing === '') {
@@ -257,7 +232,6 @@ $scope.search =  function() {
     };
 
     $scope.$on('$destroy', function () {
-     
       socket.unsyncUpdates('book');
     });
   });
