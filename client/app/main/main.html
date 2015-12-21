@@ -8,7 +8,11 @@
 
   </div>
 </header>
-
+<div ng-hide="loggedIn">
+  <div class="container formatText">
+Welcome to the fast paced world of the Book Trade. Now you can easily manage your stockpile of books. View other books in our system.  Quickly initiate new requests for books while enabling the accepting or rejecting of requests made for your books.  Create your <a href="/signup">free account</a> or <a href="/login">login</a> and start trading today!</div>
+  </div>
+<div ng-show="loggedIn">
 <div class="container" ng-show="showRequests" style="margin-top:25px">
 <button class="btn btn-info" ng-click="toggleMyRequests()">Your trade requests ({{user.myrequests.length || 0}} Outstanding)</button>
 <button class="btn btn-primary" ng-click="toggleRequests()">Trade requests for you ({{user.requests.length || 0}} Unapproved)</button>
@@ -138,7 +142,8 @@
 
 
 </div>
-
+</div>
+</div>
 <footer class="footer">
   <div class="container">
       <p>Angular Fullstack v2.1.1 |

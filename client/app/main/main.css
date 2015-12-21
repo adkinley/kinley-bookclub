@@ -7,6 +7,16 @@
     margin-top: -20px;
 }
 
+.formatText {
+  color:black;
+  font-size:14pt;
+  margin-top:50px;
+  margin-left:10%;
+  padding-right:125px;
+
+  
+}
+
 #banner h1 {
     font-size: 60px;
     line-height: 1;

@@ -102,13 +102,13 @@ exports.removeRequest = function(req, res) {
   User.findOne({name:owner}, function (err, user) {
     if (err) { return handleError(res, err); }
     if(!user) { return res.status(404).send('Not Found'); }
-    console.log(requester);
-    console.log(bookid);
-    console.log(user.myrequests);
+   // console.log(requester);
+   // console.log(bookid);
+    //console.log(user.myrequests);
      user.myrequests = _.remove(user.myrequests, function(elt) {
       return (elt.owner != requester || elt.bookID != bookid);
     });
-     console.log(user.myrequests);
+     //console.log(user.myrequests);
 
     if (user.myrequests==undefined) {
       console.log("Couldn't find request for " + requester + " " + bookid);
@@ -123,12 +123,12 @@ exports.removeRequest = function(req, res) {
 
 
 exports.removeAsk = function(req, res) {
-  console.log("Do I get here");
+  //console.log("Do I get here");
   var requester = req.params.requester;
   var bookid = req.params.bookid;
   var owner = req.params.owner;
 
-  console.log("Remove Ask " + requester + " " + owner);
+//  console.log("Remove Ask " + requester + " " + owner);
   if(req.body._id) { delete req.body._id; }
   User.findOne({name:owner}, function (err, user) {
     if (err) { return handleError(res, err); }

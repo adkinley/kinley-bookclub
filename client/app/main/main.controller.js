@@ -1,5 +1,5 @@
 'use strict';
-var apikey = 'AIzaSyCE85DXHNPzH7JtJoP6wPUh9W_XYPstnPw';
+//var apikey = 'AIzaSyCE85DXHNPzH7JtJoP6wPUh9W_XYPstnPw';
 
 angular.module('kinleyBookclubApp')
   .controller('MainCtrl', function ($scope, $http, socket, Auth, $window, $cookies, $location) {
@@ -16,6 +16,7 @@ angular.module('kinleyBookclubApp')
     $scope.showRequests = true;
     $scope.showMyRequests = false;
     $scope.showPendingRequests = false;
+    $scope.loggedIn = Auth.isLoggedIn();
 
     // could have done this way better, but ngRoute allows this so it will 
     // stay this way but i could have angular-fullstack:route newroute on this
@@ -51,12 +52,14 @@ angular.module('kinleyBookclubApp')
         $scope.currentUser = Auth.getCurrentUser().name;
         $http.get('/api/users/me').success(function (data) {
 
-          $scope.user = data;
-          var books  = $scope.awesomeThings;
+          var booklist  = data.mybooks;
+         // console.log("User data is " + JSON.stringify($scope.user));
+          var booklist  = $scope.awesomeThings;
           $scope.userBooks = [];
-          _.forEach(books, function (element) {
-            if (element.owner == $scope.user.name)
-             $scope.userBooks.push(element);
+          _.forEach(booklist, function (element) {
+            $http.get("/api/books/"+element._id).success(function (entry) {
+             $scope.userBooks.push(entry);
+           });
          });
 
       });
@@ -177,8 +180,9 @@ $scope.addFromLibrary = function(bookId) {
    $http.put('/api/users/add/'+Auth.getCurrentUser().name+'/'+book._id).success(function (data) {
 
     });
-
+  // console.log("Certainly got to here");
    if (Auth.isLoggedIn()) {
+    //console.log("Added to book to user list")
     $scope.userBooks.push(book);
    }
  //}
@@ -191,12 +195,21 @@ $scope.addFromSearch = function(bookId) {
    var entry = createEntry(book);
 
    if (Auth.isLoggedIn()) {
-    $scope.userBooks.push(entry);
+    //console.log("Adding book from serach list");
+//    $scope.userBooks.push(entry);
+  //  console.log("Added: " + JSON.stringify($scope.userBooks));
   }
 
     $http.post('/api/books', entry).success(function (data) {
-     $http.put('/api/users/add/'+Auth.getCurrentUser().name+'/'+data._id).success(function (data) {
+     $http.put('/api/users/add/'+Auth.getCurrentUser().name+'/'+data._id).success(function (data2) {
       _.remove($scope.books , function (book) { return book.id== bookId;} );
+    //  console.log("Successfull added: " +JSON.stringify(data));
+      //console.log("and: " + JSON.stringify(data2));
+     //console.log("UserBooks: " + JSON.stringify($scope.userBooks));
+           loadCurrentUser();
+      loadLibrary();
+      //console.log("can we reload everything");
+     //console.log("UserBooks: " + JSON.stringify($scope.userBooks));
      });
    })
   .error(function(err) {
